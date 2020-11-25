@@ -57,26 +57,24 @@ SECTOR_SIZE = 512
 # Descriptor Template
 image_descriptor_template='''# Description file created by VMDK stream converter
 version=1
-# Believe this is random
 CID=7e5b80a7
 # Indicates no parent
 parentCID=ffffffff
 createType="streamOptimized"
 
 # Extent description
-RDONLY #SECTORS# SPARSE "call-me-stream.vmdk"
+RDONLY #SECTORS# SPARSE "disk0.vmdk"
 
 # The Disk Data Base
 #DDB
 
-ddb.adapterType = "lsilogic"
-# #SECTORS# / 63 / 255 rounded up
+ddb.adapterType = "ide"
 ddb.geometry.cylinders = "#CYLINDERS#"
-ddb.geometry.heads = "255"
+ddb.geometry.heads = "16"
 ddb.geometry.sectors = "63"
-# Believe this is random
 ddb.longContentID = "8f15b3d0009d9a3f456ff7b28d324d2a"
-ddb.virtualHWVersion = "11"'''
+ddb.virtualHWVersion = "11"
+'''
 
 
 def create_sparse_header(inFileSectors, descriptorSize,
@@ -196,7 +194,7 @@ def convert_to_stream(infilename, outfilename):
     grainDirectoryEntries=grainDirectorySectors*128
     debug_print("DEBUG: Number of entries in Grain Directory - (%s)" % (grainDirectoryEntries))
 
-    infileCylinders=divro(infileSectors, (63*255))
+    infileCylinders=divro(infileSectors, (63*16))
     debug_print("DEBUG: Cylinders (%s)" % infileCylinders)
 
     # Populate descriptor

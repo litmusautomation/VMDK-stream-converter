@@ -315,13 +315,13 @@ def convert_to_stream(infilename, outfilename, adapter_type, hw_version):
         infile.close()
 
 def usage():
-    print('usage: %s [-a <adaper_type>] [-h <hw_version>] <in_file> <out_file>' % os.path.basename(sys.argv[0]))
+    print('usage: %s [-a <adaper_type>] [-h <hw_version>] <input_file> <output_file>' % os.path.basename(sys.argv[0]))
     print
     print('where,')
     print('    <adapter_type> - one of "ide", "lsilogic", "buslogic", etc. [default: "%s"]' % ADAPTER_TYPE)
     print('    <hw_version>   - hardware version number (see also https://kb.vmware.com/s/article/1003746) [default: %d]' % HW_VERSION)
-    print('    <src>          - input file')
-    print('    <dst>          - output VMDK file')
+    print('    <input_file>   - source file')
+    print('    <output_file>  - destination VMDK file')
 
 if __name__ == '__main__':
 

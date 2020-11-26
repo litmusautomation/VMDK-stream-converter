@@ -8,7 +8,4 @@ into ESX using the vSphere SOAP API and HTTP POST uploads of image files.
 
 It is also the must for creating OVF/OVA virtual appliances.
 
-More details about the Image Factory and the rest of the aeolus project
-can be found here:
-
 -Ian McLeod <imcleod@redhat.com>

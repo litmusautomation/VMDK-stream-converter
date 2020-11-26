@@ -35,6 +35,7 @@ import os
 import math
 import string
 import zlib
+import getopt
 
 class VMDKStreamException(Exception):
     def __init__(self, msg):
@@ -53,30 +54,29 @@ MARKER_FOOTER = 3 # footer (repeat of header with final info)
 
 # Other Constants
 SECTOR_SIZE = 512
+HW_VERSION = 11
+ADAPTER_TYPE = "lsilogic"
 
 # Descriptor Template
 image_descriptor_template='''# Description file created by VMDK stream converter
 version=1
-# Believe this is random
 CID=7e5b80a7
-# Indicates no parent
 parentCID=ffffffff
 createType="streamOptimized"
 
 # Extent description
-RDONLY #SECTORS# SPARSE "call-me-stream.vmdk"
+RDONLY #SECTORS# SPARSE "virtual-disk.vmdk"
 
 # The Disk Data Base
 #DDB
 
-ddb.adapterType = "lsilogic"
-# #SECTORS# / 63 / 255 rounded up
+ddb.adapterType = "#ADAPTER_TYPE#"
 ddb.geometry.cylinders = "#CYLINDERS#"
-ddb.geometry.heads = "255"
+ddb.geometry.heads = "16"
 ddb.geometry.sectors = "63"
-# Believe this is random
 ddb.longContentID = "8f15b3d0009d9a3f456ff7b28d324d2a"
-ddb.virtualHWVersion = "11"'''
+ddb.virtualHWVersion = "#HW_VERSION#"
+'''
 
 
 def create_sparse_header(inFileSectors, descriptorSize,
@@ -171,7 +171,7 @@ def debug_print(message):
     #print message
     pass
 
-def convert_to_stream(infilename, outfilename):
+def convert_to_stream(infilename, outfilename, adapter_type, hw_version):
     debug_print("DEBUG: opening %s to write to %s" % (infilename, outfilename))
 
     infileSize = os.path.getsize(infilename)
@@ -196,13 +196,15 @@ def convert_to_stream(infilename, outfilename):
     grainDirectoryEntries=grainDirectorySectors*128
     debug_print("DEBUG: Number of entries in Grain Directory - (%s)" % (grainDirectoryEntries))
 
-    infileCylinders=divro(infileSectors, (63*255))
+    infileCylinders=divro(infileSectors, (63*16))
     debug_print("DEBUG: Cylinders (%s)" % infileCylinders)
 
     # Populate descriptor
     tmpl = image_descriptor_template
     tmpl = string.replace(tmpl, "#SECTORS#", str(infileSectors))
     tmpl = string.replace(tmpl, "#CYLINDERS#", str(infileCylinders))
+    tmpl = string.replace(tmpl, "#ADAPTER_TYPE#", str(adapter_type))
+    tmpl = string.replace(tmpl, "#HW_VERSION#", str(hw_version))
     image_descriptor = tmpl
 
     image_descriptor_pad, desc_sectors = pad_to_sector(len(image_descriptor))
@@ -312,5 +314,37 @@ def convert_to_stream(infilename, outfilename):
         outfile.close()
         infile.close()
 
+def usage():
+    print('usage: %s [-a <adaper_type>] [-h <hw_version>] <in_file> <out_file>' % os.path.basename(sys.argv[0]))
+    print
+    print('where,')
+    print('    <adapter_type> - one of "ide", "lsilogic", "buslogic", etc. [default: "%s"]' % ADAPTER_TYPE)
+    print('    <hw_version>   - hardware version number (see also https://kb.vmware.com/s/article/1003746) [default: %d]' % HW_VERSION)
+    print('    <src>          - input file')
+    print('    <dst>          - output VMDK file')
+
 if __name__ == '__main__':
-    convert_to_stream(sys.argv[1], sys.argv[2])
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'a:h:')
+    except getopt.GetoptError as err:
+        print str(err)
+        usage()
+        sys.exit(2)
+    else:
+        # check number of arguments
+        if len(args) != 2:
+            print("ERROR: not enough arguments")
+            print
+            usage()
+            sys.exit(2)
+        # parse options
+        hw_version = HW_VERSION
+        adapter_type = ADAPTER_TYPE
+        for opt, arg in opts:
+            if opt in ('-a'):
+                adapter_type = arg
+            elif opt in ('-h'):
+                hw_version = arg
+        # convert the stream
+        convert_to_stream(args[0], args[1], adapter_type, hw_version)

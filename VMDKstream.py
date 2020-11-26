@@ -65,7 +65,7 @@ parentCID=ffffffff
 createType="streamOptimized"
 
 # Extent description
-RDONLY #SECTORS# SPARSE "virtual-disk.vmdk"
+RDONLY #SECTORS# SPARSE "virtual-disk0.vmdk"
 
 # The Disk Data Base
 #DDB

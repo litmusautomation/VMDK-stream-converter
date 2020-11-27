@@ -72,7 +72,7 @@ RDONLY #SECTORS# SPARSE "virtual-disk0.vmdk"
 
 ddb.adapterType = "#ADAPTER_TYPE#"
 ddb.geometry.cylinders = "#CYLINDERS#"
-ddb.geometry.heads = "#HEADS#"
+ddb.geometry.heads = "16"
 ddb.geometry.sectors = "63"
 ddb.longContentID = "8f15b3d0009d9a3f456ff7b28d324d2a"
 ddb.virtualHWVersion = "#HW_VERSION#"
@@ -171,7 +171,7 @@ def debug_print(message):
     #print message
     pass
 
-def convert_to_stream(infilename, outfilename, adapter_type, hw_version, heads):
+def convert_to_stream(infilename, outfilename, adapter_type, hw_version):
     debug_print("DEBUG: opening %s to write to %s" % (infilename, outfilename))
 
     infileSize = os.path.getsize(infilename)
@@ -196,7 +196,7 @@ def convert_to_stream(infilename, outfilename, adapter_type, hw_version, heads):
     grainDirectoryEntries=grainDirectorySectors*128
     debug_print("DEBUG: Number of entries in Grain Directory - (%s)" % (grainDirectoryEntries))
 
-    infileCylinders=divro(infileSectors, (63*heads))
+    infileCylinders=divro(infileSectors, (63*16))
     debug_print("DEBUG: Cylinders (%s)" % infileCylinders)
 
     # Populate descriptor
@@ -205,7 +205,6 @@ def convert_to_stream(infilename, outfilename, adapter_type, hw_version, heads):
     tmpl = string.replace(tmpl, "#CYLINDERS#", str(infileCylinders))
     tmpl = string.replace(tmpl, "#ADAPTER_TYPE#", str(adapter_type))
     tmpl = string.replace(tmpl, "#HW_VERSION#", str(hw_version))
-    tmpl = string.replace(tmpl, "#HEADS#", str(heads))
     image_descriptor = tmpl
 
     image_descriptor_pad, desc_sectors = pad_to_sector(len(image_descriptor))
@@ -342,13 +341,10 @@ if __name__ == '__main__':
         # parse options
         hw_version = HW_VERSION
         adapter_type = ADAPTER_TYPE
-        heads = 255
         for opt, arg in opts:
             if opt in ('-a'):
                 adapter_type = arg
-                if adapter_type == "ide":
-                    heads = 16
             elif opt in ('-h'):
                 hw_version = arg
         # convert the stream
-        convert_to_stream(args[0], args[1], adapter_type, hw_version, heads)
+        convert_to_stream(args[0], args[1], adapter_type, hw_version)

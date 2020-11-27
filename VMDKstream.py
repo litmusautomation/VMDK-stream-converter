@@ -319,7 +319,7 @@ def usage():
     print('usage: %s [-a <adaper_type>] [-h <hw_version>] <input_file> <output_file>' % os.path.basename(sys.argv[0]))
     print
     print('where,')
-    print('    <adapter_type> - one of "ide", "lsilogic", "buslogic", etc. [default: "%s"]' % ADAPTER_TYPE)
+    print('    <adapter_type> - one of "ide" or "lsilogic" [default: "%s"]' % ADAPTER_TYPE)
     print('    <hw_version>   - hardware version number (see also https://kb.vmware.com/s/article/1003746) [default: %d]' % HW_VERSION)
     print('    <input_file>   - source file')
     print('    <output_file>  - destination VMDK file')
@@ -348,6 +348,13 @@ if __name__ == '__main__':
                 adapter_type = arg
                 if adapter_type == "ide":
                     heads = 16
+                elif adapter_type == "lsilogic":
+                    pass
+                else:
+                    print("ERROR: invalid adapter type \"%s\"" % adapter_type)
+                    print
+                    usage()
+                    sys.exit(-1)
             elif opt in ('-h'):
                 hw_version = arg
         # convert the stream
